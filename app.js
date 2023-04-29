@@ -7,6 +7,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xssClean = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -31,12 +32,12 @@ console.log('Environment =', process.env.NODE_ENV);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Set Security HTTP headers
-// app.use(
-//   helmet({
-//     contentSecurityPolicy: false,
-//     crossOriginEmbedderPolicy: false,
-//   })
-// );
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // The Order Matter for middleWares
 if (process.env.NODE_ENV === 'development') {
@@ -90,6 +91,8 @@ app.use(
     ],
   })
 );
+
+app.use(compression());
 
 /* A middleware that parses the body of the request and sets it to req.body. */
 app.use(express.text());
