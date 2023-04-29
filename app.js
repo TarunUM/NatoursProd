@@ -25,19 +25,19 @@ app.set('views', path.join(__dirname, 'views'));
 console.log('Environment =', process.env.NODE_ENV);
 
 // MIddeleWares
+
 // GLOBAL MIddeleWares
 
 // Serving Static Files
-// app.use(express.static(`${__dirname}/public`));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Set Security HTTP headers
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-  })
-);
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: false,
+//     crossOriginEmbedderPolicy: false,
+//   })
+// );
 
 // The Order Matter for middleWares
 if (process.env.NODE_ENV === 'development') {
@@ -65,11 +65,6 @@ app.use(cookieParser());
 
 // Data Sanitizaton against NoSql query injection /* "email":{ "$gt": ""} it works */
 app.use(mongoSanitize());
-// app.use(
-//   mongoSanitize({
-//     replaceWith: '_',
-//   })
-// );
 
 // Data Sanitizaton against XSS
 app.use(xssClean());
@@ -97,16 +92,8 @@ app.use(compression());
 /* A middleware that parses the body of the request and sets it to req.body. */
 app.use(express.text());
 
-// //Custom middleWares
-// app.use((req, res, next) => {
-//   console.log("Hello from middleWare 👌");
-//   next();
-// });
-
 // Test MiddleWare
 app.use((req, res, next) => {
-  // req.requestTime = new Date().toISOString();
-  // console.log(req.cookies);
   next();
 });
 
@@ -119,36 +106,9 @@ app.use('/api/v1/booking', bookingRouter);
 
 /* A middleware that is used to handle all the routes that are not defined in the app. */
 app.use('*', (req, res, next) => {
-  // res.status(404).json({
-  //   status: 'fail',
-  //   message: `Route ${req.originalUrl} Not Found`,
-  // });
-
-  // const err = new Error(`Route ${req.originalUrl} not found on this server`);
-  // err.statusCode = 404;
-  // err.status = 'fail';
-  // next(err);
-
   next(new AppError(`Route ${req.originalUrl} not found on this server`, 404));
 });
 
 app.use(globalErrorHandler);
 
 module.exports = app;
-
-/*
-app.get('/', (req, res) => {
-    // res.status(200).send("hello from the server side!");
-    res.status(200).json({message : 'hello from the server side!', app : "Natours"})
-})
-
-app.post(`/`, (req, res) => {
-    res.send('got message You can post to this endpoints...')
-})
-*/
-
-// app.get('/api/v1/tours', getAllTours);
-// app.get('/api/v1/tours/:id', getTour);
-// app.post('/api/v1/tours', createTour);
-// app.patch('/api/v1/tours/:id', updateTour);
-// app.delete('/api/v1/tours/:id', deleteTour);
