@@ -12,23 +12,19 @@ const signtoken = (id) => {
   });
 };
 
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = (user, statusCode, req, res) => {
   const token = signtoken(user._id);
-  const cookieOptions = {
+
+  res.cookie('jwt', token, {
     // It will only work on https requests
     // secure: true,
     // this will not change the token in browsers
     httpOnly: true,
     expiresIn: new Date(
-      Date.now() + process.env.JWT_COKKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+        Date.now() + process.env.JWT_COKKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
-  };
-
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true;
-  }
-
-  res.cookie('jwt', token, cookieOptions);
+    secure: req.secure || req.headers('x-forwarded-proto') === 'https'
+  });
 
   // it will remove the password from the output
   user.password = undefined;
@@ -55,7 +51,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const url = `${req.protocol}://${req.get('host')}/me`;
   // console.log(url);
   await new Email(newUser, url).sendWelcome();
-  createSendToken(newUser, 201, res);
+  createSendToken(newUser, 201, req, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -75,13 +71,13 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything is correct then return token
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 exports.logout = catchAsync(async (req, res) => {
   res.cookie('jwt', 'loggedout', {
     expires: new Date(Date.now() + 5 * 1000),
-    secure: true,
+    httpOnly: true,
   });
   res.status(200).json({ status: 'success' });
 });
@@ -233,7 +229,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // BY adding a middleware in model class
 
   // 4) Log the user in, Send JWT token
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -255,5 +251,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) log user in, send JWT token
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
